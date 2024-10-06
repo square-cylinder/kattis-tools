@@ -1,0 +1,109 @@
+#! /usr/bin/env python3
+
+from bs4 import BeautifulSoup
+from requests import get
+import argparse
+
+# argparse setup
+parser = argparse.ArgumentParser(description='Convert a problem page to plaintext')
+parser.add_argument('url', type=str, help='URL of the problem page')
+parser.add_argument('-linewidth', '-l', type=int, help='Desired line width, set to 0 for no limit', default=80)
+args = parser.parse_args()
+
+def limit_linewidth(text, width=80):
+    out_lines = []
+    words = []
+    words_text = []
+    current_word = []
+    for word in text.split():
+        if "(" in word:
+            current_word.append(word)
+        elif ")" in word:
+            current_word.append(word)
+            words_text.append(" ".join(current_word))
+            current_word = []
+        elif current_word:
+            current_word.append(word)
+        else:
+            words_text.append(word)
+    cur_width = 0
+    for word in words_text:
+        if cur_width + len(word) > width + 1:
+            out_lines.append(" ".join(words))
+            words = []
+            cur_width = 0
+        words.append(word)
+        cur_width += len(word) + 1
+    out_lines.append(" ".join(words))
+    return "\n".join(out_lines)
+
+
+def convert_to_plaintext(html, linewidth=80):
+    # Parse HTML using BeautifulSoup
+    soup = BeautifulSoup(html, 'html.parser')
+
+    # Remove unwanted 'illustration' and 'description' divs (like images)
+    for div in soup.find_all('div', {'class': 'illustration'}):
+        div.decompose()
+
+    # Create a dictionary to map LaTeX symbols to their Unicode equivalents
+    latex_to_unicode = {
+        r'\cdot': '·',
+        r'\leq': '≤',
+        r'\geq': '≥',
+        r'\times': '×',
+        r'\neq': '≠',
+        r'\approx': '≈',
+        r'\infty': '∞',
+        r'\pm': '±',
+        # Add other substitutions as needed
+    }
+
+    # Collect text ensuring proper paragraph and section breaks
+    output_lines = []
+
+    output_lines.append("# " + soup.select('.book-page-heading')[0].get_text())
+
+    # Convert math notation (e.g., tex2jax_process spans) to plain text and replace LaTeX symbols
+    for span in soup.find_all('span', {'class': 'tex2jax_process'}):
+        tex_text = span.get_text()
+        # Replace $ symbols and apply the LaTeX to Unicode substitutions
+        cleaned_text = tex_text.replace('$', '')
+        for latex, symbol in latex_to_unicode.items():
+            cleaned_text = cleaned_text.replace(latex, symbol)
+        span.replace_with(cleaned_text)
+
+
+    # Iterate through child elements of the problem body
+    for element in soup.select('.problembody > *'):
+        # Handle paragraphs and headings
+        if element.name in ['p', 'h2']:
+            element_text =' '.join(element.get_text().replace("\n", " ").split())
+            if linewidth > 0:
+                element_text = limit_linewidth(element_text, linewidth)
+
+            if element.name == 'h2':
+                output_lines.append(f"\n# {element_text}")
+            else:
+                output_lines.append(f"\n{element_text}\n")
+        # Handle preformatted text (for sample inputs/outputs)
+        elif element.name == 'pre':
+            output_lines.append(element.get_text())  # Add preformatted content without stripping
+        # You can add more rules here if needed to handle different tags
+
+    # Join the lines with appropriate paragraph spacing (double newlines between sections)
+    cleaned_text = "".join(output_lines)
+
+    # Output the final cleaned-up text
+    return cleaned_text
+
+address = args.url
+response = get(address)
+html = response.text
+try:
+    print(convert_to_plaintext(html, args.linewidth))
+except Exception as e:
+    print(f"Error: {e}")
+    print("Could not convert the page to plaintext.")
+    print("Please check the URL and try again.")
+    exit(1)
