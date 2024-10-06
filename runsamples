@@ -1,14 +1,23 @@
 exec="$1"
-filetocopy="$1"
-if [[ "$1" =~ .*\.cpp ]]; then
-    echo "compiling..."
-    if ! g++ "$1" -g; then
+code="$1"
+if [ -z $code ]; then
+    srcfiles=$(find . -maxdepth 1 | grep -e '.*\.cpp$' -e '.*\.py$')
+    if [ $(find . -maxdepth 1 | grep -e '.*\.cpp$' -e '.*\.py$' | wc -l) = 1 ]; then
+    	code=$(find . -maxdepth 1 | grep -e '.*\.cpp$' -e '.*\.py$')
+        echo "Running samples on $code..."
+    fi
+fi
+
+filetocopy="$code"
+if [[ "$code" =~ .*\.cpp ]]; then
+     echo "compiling..."
+    if ! g++ "$code" -g; then
         echo "compilation failed!"
         exit 1
     fi
     exec="./a.out"
-elif [[ "$1" =~ .*\.py ]]; then
-    exec="python3 $1"
+elif [[ "$code" =~ .*\.py ]]; then
+    exec="python3 $code"
 else
     echo "please provide a valid file to test, supported files are .cpp, .py"
     exit 1
@@ -41,10 +50,12 @@ done
 
 if [ $allpassed = true ]; then
     echo "All testcases passed! "
-    echo "Do you want to copy the source code to the system clipboard ($(wc -c $filetocopy | cut -d" " -f1) bytes)? (y/n)"
+    echo "Copy code/submit to kattis/dismiss (c/s/d) ($(wc -c $filetocopy | cut -d" " -f1) bytes)"
     read answer
-    if [[ "$answer" =~ [Yy] ]]; then
+    if [[ "$answer" =~ [Cc] ]]; then
         cat $filetocopy | xclip -selection clipboard
         echo "Code stored in clipboard."
+    elif [[ "$answer" =~ [Ss] ]]; then
+    	kattis-submit $code
     fi
 fi
