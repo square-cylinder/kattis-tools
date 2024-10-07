@@ -109,11 +109,21 @@ def convert_to_plaintext(html, linewidth=80):
         # Handle preformatted text (for sample inputs/outputs)
         elif element.name == 'pre':
             output_lines.append(f"\n{element.get_text().strip()}\n")
+        elif element.name == 'ul':
+            for li in element.children:
+                if li.name != 'li':
+                    continue
+                element_text = ' '.join(li.get_text().replace("\n", " ").split())
+                element_text = limit_linewidth(element_text, linewidth - 3)
+                element_text = "\n".join("   " + text for text in element_text.splitlines())
+                output_lines.append(" - " + element_text.lstrip() + "\n")
+
 
     # Join the lines with appropriate paragraph spacing (double newlines between sections)
     cleaned_text = "".join(output_lines)
     # Return the final cleaned-up text
     return cleaned_text
+
 
 if __name__ == "__main__":
     args = parser.parse_args()
