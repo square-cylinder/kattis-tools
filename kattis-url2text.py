@@ -110,6 +110,7 @@ def convert_to_plaintext(html, linewidth=80):
         elif element.name == 'pre':
             output_lines.append(f"\n{element.get_text().strip()}\n")
         elif element.name == 'ul':
+            output_lines.append("\n")
             for li in element.children:
                 if li.name != 'li':
                     continue
