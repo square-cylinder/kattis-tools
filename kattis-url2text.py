@@ -96,13 +96,15 @@ def convert_to_plaintext(html, linewidth=80):
             non_tagged = []
 
         # Handle paragraphs and headings properly
-        if element.name in ['p', 'h2']:
+        if element.name in ['p', 'h2', 'h3']:
             element_text = ' '.join(element.get_text().replace("\n", " ").split())
             if linewidth > 0:
                 element_text = limit_linewidth(element_text, linewidth)
 
             if element.name == 'h2':
-                output_lines.append(f"\n# {element_text}")
+                output_lines.append(f"\n## {element_text}")
+            elif element.name == 'h3':
+                output_lines.append(f"\n### {element_text}")
             else:
                 output_lines.append(f"\n{element_text}\n")
 
@@ -118,6 +120,17 @@ def convert_to_plaintext(html, linewidth=80):
                 element_text = limit_linewidth(element_text, linewidth - 3)
                 element_text = "\n".join("   " + text for text in element_text.splitlines())
                 output_lines.append(" - " + element_text.lstrip() + "\n")
+        elif element.name == 'ol':
+            output_lines.append("\n")
+            n = 1
+            for li in element.children:
+                if li.name != 'li':
+                    continue
+                element_text = ' '.join(li.get_text().replace("\n", " ").split())
+                element_text = limit_linewidth(element_text, linewidth - 4)
+                element_text = "\n".join("    " + text for text in element_text.splitlines())
+                output_lines.append(f" {n}. " + element_text.lstrip() + "\n")
+                n += 1
 
 
     # Join the lines with appropriate paragraph spacing (double newlines between sections)
