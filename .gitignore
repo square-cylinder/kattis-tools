@@ -1,0 +1,23 @@
+# Byte-compiled files
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+venv/
+.venv/
+env/
+.env/
+bin
+lib
+lib64
+pyvenv.cfg
+
+# Distribution / Packaging
+build/
+dist/
+*.egg-info/
+
+# IDE-specific files
+.vscode/
+.idea/
+*.swp
