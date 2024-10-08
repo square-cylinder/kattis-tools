@@ -1,5 +1,7 @@
 #include <bits/stdc++.h>
 
+//#define MULTIPLE_CASES
+
 /* Don't want to type std:: everywhere */
 using namespace std;
 
@@ -34,6 +36,11 @@ string solve();
 i32 main(i32 argc, char** argv) {
     std::ios::sync_with_stdio(false);
     cin.tie(nullptr);
+#ifdef MULTIPLE_CASES
+i32 n;
+cin >> n;
+while(n--)
+#endif
     cout << solve() << "\n";
     return 0;
 }
