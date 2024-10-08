@@ -23,7 +23,7 @@ else
     exit 1
 fi
 
-samplenames=$(find ./samples/ -name '*.in' | awk 'BEGIN{FS="[/.]"}{print $(NF-1)}')
+samplenames=$(find ./samples/ -name '*.in' | xargs -L1 basename | xargs -I {} sh -c "echo {} | rev | cut -d . -f 1 --complement | rev")
 
 allpassed=true
 for name in $samplenames; do
