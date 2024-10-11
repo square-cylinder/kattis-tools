@@ -19,18 +19,6 @@ using u32 = uint32_t;
 using i64 = int64_t;
 using u64 = uint64_t;
 
-/* Convenient function to read a list of things */
-template<class T>
-vector<T> input_vec(int length) {
-    vector<T> v; v.reserve(length);
-    for (int i = 0; i < length; i++) {
-        T x;
-        cin >> x;
-        v.emplace_back(x);
-    }
-    return v;
-}
-
 string solve();
 
 i32 main(i32 argc, char** argv) {
