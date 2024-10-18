@@ -20,7 +20,7 @@ if mkdir "$name" 2> /dev/null; then
     if ! [ -z "$file" ]; then
         cp "$template" "$file"
         echo "created \"$name/$file\""
-        code -r "$file"
+        #code -r "$file"
     fi
     kattis-fetchsamples "$name"
     kattis-url2text "https://open.kattis.com/problems/$name"
